@@ -59,5 +59,6 @@
   "repository": {
   "type": "git",
     "url": "https://github.com/accidental-mvp/code-roast"
-  }
+  },
+  "icon": "icon.png"
 }
