@@ -37,8 +37,8 @@ exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const geminiClient_1 = require("./roaster/geminiClient");
+const writeSummary_1 = require("./summary/writeSummary");
 let diagnosticCollection;
-// Map Gemini severity levels to VS Code diagnostic severities
 const severityMap = {
     'minor': vscode.DiagnosticSeverity.Information,
     'major': vscode.DiagnosticSeverity.Warning,
@@ -51,6 +51,7 @@ function activate(context) {
         vscode.window.showInformationMessage('🔥 Roasting your sins (whole-file mode)...');
         const files = await vscode.workspace.findFiles('**/*.{ts,js}', '**/{node_modules,dist,build,out}/**');
         let totalRoasts = 0;
+        const allRoasts = [];
         for (const file of files) {
             const doc = await vscode.workspace.openTextDocument(file);
             const text = doc.getText();
@@ -59,15 +60,15 @@ function activate(context) {
                 const roasts = await (0, geminiClient_1.getRoastsForFile)(text);
                 if (!roasts || roasts.length === 0)
                     continue;
-                // Log the full roast data for debugging
                 console.log('[GEMINI ROAST DATA]', JSON.stringify(roasts, null, 2));
                 const diagnostics = [];
                 for (const roast of roasts) {
-                    const actualLine = Math.max(0, Math.min(roast.line - 1, doc.lineCount - 1)); // 1-based → 0-based
+                    const actualLine = Math.max(0, Math.min(roast.line - 1, doc.lineCount - 1));
                     const line = doc.lineAt(actualLine);
                     const range = new vscode.Range(actualLine, 0, actualLine, line.text.length);
                     const diag = new vscode.Diagnostic(range, roast.roast, severityMap[roast.severity] || vscode.DiagnosticSeverity.Warning);
                     diagnostics.push(diag);
+                    allRoasts.push(roast);
                     totalRoasts++;
                 }
                 diagnosticCollection.set(uri, diagnostics);
@@ -79,6 +80,7 @@ function activate(context) {
         }
         if (totalRoasts > 0) {
             vscode.window.showInformationMessage(`🔥 Gemini roasted ${totalRoasts} line(s) across your codebase.`);
+            await (0, writeSummary_1.writeRoastSummary)(allRoasts, files.length);
         }
         else {
             vscode.window.showInformationMessage('✨ Gemini found nothing to roast. You may be… competent.');
