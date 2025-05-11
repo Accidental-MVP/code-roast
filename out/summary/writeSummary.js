@@ -47,6 +47,10 @@ async function writeRoastSummary(roasts, totalFiles) {
     const filePath = path.join(folderPath, 'roast-summary.md');
     fs.mkdirSync(folderPath, { recursive: true });
     fs.writeFileSync(filePath, summary, 'utf8');
-    vscode.window.showInformationMessage(`📂 Gemini-powered roast summary saved to ${filePath}`);
+    vscode.window.showInformationMessage(`📂 Gemini-powered roast summary saved to roast-summary.md`, 'View Roast Report').then(selection => {
+        if (selection === 'View Roast Report') {
+            vscode.commands.executeCommand('code-roast.viewSummary');
+        }
+    });
 }
 //# sourceMappingURL=writeSummary.js.map

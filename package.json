@@ -18,6 +18,10 @@
       {
         "command": "code-roast.start",
         "title": "Start Code Roast"
+      },
+      {
+        "command": "code-roast.viewSummary",
+        "title": "View Roast Summary"
       }
     ],
     "configuration": {

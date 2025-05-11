@@ -2,9 +2,6 @@ import * as vscode from 'vscode'
 import { getRoastsForFile } from './roaster/geminiClient'
 import { writeRoastSummary } from './summary/writeSummary'
 
-
-
-
 let diagnosticCollection: vscode.DiagnosticCollection
 
 type RoastSeverity = 'minor' | 'major' | 'critical'
@@ -14,8 +11,6 @@ export interface RoastData {
   roast: string
   severity: RoastSeverity
 }
-
-
 
 const severityMap: Record<RoastSeverity, vscode.DiagnosticSeverity> = {
   'minor': vscode.DiagnosticSeverity.Information,
@@ -78,7 +73,24 @@ export function activate(context: vscode.ExtensionContext) {
     }
   })
 
-  context.subscriptions.push(roastCommand)
+  const viewSummaryCommand = vscode.commands.registerCommand('code-roast.viewSummary', async () => {
+    const workspace = vscode.workspace.workspaceFolders?.[0]
+    if (!workspace) {
+      vscode.window.showErrorMessage('No workspace folder open.')
+      return
+    }
+
+    const filePath = vscode.Uri.file(`${workspace.uri.fsPath}/.code-roast/database/roast-summary.md`)
+
+    try {
+      const doc = await vscode.workspace.openTextDocument(filePath)
+      await vscode.window.showTextDocument(doc, { preview: false })
+    } catch (err) {
+      vscode.window.showErrorMessage('Roast summary not found. You may not have been judged yet.')
+    }
+  })
+
+  context.subscriptions.push(roastCommand, viewSummaryCommand)
 }
 
 export function deactivate() {

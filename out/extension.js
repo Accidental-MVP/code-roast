@@ -86,7 +86,22 @@ function activate(context) {
             vscode.window.showInformationMessage('✨ Gemini found nothing to roast. You may be… competent.');
         }
     });
-    context.subscriptions.push(roastCommand);
+    const viewSummaryCommand = vscode.commands.registerCommand('code-roast.viewSummary', async () => {
+        const workspace = vscode.workspace.workspaceFolders?.[0];
+        if (!workspace) {
+            vscode.window.showErrorMessage('No workspace folder open.');
+            return;
+        }
+        const filePath = vscode.Uri.file(`${workspace.uri.fsPath}/.code-roast/database/roast-summary.md`);
+        try {
+            const doc = await vscode.workspace.openTextDocument(filePath);
+            await vscode.window.showTextDocument(doc, { preview: false });
+        }
+        catch (err) {
+            vscode.window.showErrorMessage('Roast summary not found. You may not have been judged yet.');
+        }
+    });
+    context.subscriptions.push(roastCommand, viewSummaryCommand);
 }
 function deactivate() {
     diagnosticCollection?.clear();
