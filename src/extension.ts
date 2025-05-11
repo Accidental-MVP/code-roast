@@ -1,83 +1,81 @@
 import * as vscode from 'vscode'
-import { analyzeWorkspace, RoastCandidate } from './analyzer/analyzeFile'
-import { generateRoastWithGemini } from './roaster/geminiClient'
-
+import { getRoastsForFile } from './roaster/geminiClient'
 
 let diagnosticCollection: vscode.DiagnosticCollection
+
+type RoastSeverity = 'minor' | 'major' | 'critical'
+
+interface RoastData {
+  line: number
+  roast: string
+  severity: RoastSeverity
+}
+
+// Map Gemini severity levels to VS Code diagnostic severities
+const severityMap: Record<RoastSeverity, vscode.DiagnosticSeverity> = {
+  'minor': vscode.DiagnosticSeverity.Information,
+  'major': vscode.DiagnosticSeverity.Warning,
+  'critical': vscode.DiagnosticSeverity.Error
+}
 
 export function activate(context: vscode.ExtensionContext) {
   diagnosticCollection = vscode.languages.createDiagnosticCollection('code-roast')
   context.subscriptions.push(diagnosticCollection)
 
   const roastCommand = vscode.commands.registerCommand('code-roast.start', async () => {
-    vscode.window.showInformationMessage('🔥 Roasting your sins...')
+    vscode.window.showInformationMessage('🔥 Roasting your sins (whole-file mode)...')
 
-    const results: RoastCandidate[] = await analyzeWorkspace()
+    const files = await vscode.workspace.findFiles('**/*.{ts,js}', '**/{node_modules,dist,build,out}/**')
+    let totalRoasts = 0
 
-    if (results.length === 0) {
-      vscode.window.showInformationMessage('Nothing roastable. Suspiciously clean...')
-      return
-    }
-
-    const fileMap: Map<string, vscode.Diagnostic[]> = new Map()
-
-    for (const r of results) {
-      const uri = vscode.Uri.file(r.filePath)
-      const range = new vscode.Range(r.line, 0, r.line, r.text.length)
-      
-      let message: string | null = null
+    for (const file of files) {
+      const doc = await vscode.workspace.openTextDocument(file)
+      const text = doc.getText()
+      const uri = file
 
       try {
-        message = await generateRoastWithGemini(r.text)
+        const roasts = await getRoastsForFile(text) as RoastData[]
+        if (!roasts || roasts.length === 0) continue
 
-        if (message === 'This one\'s not roastable.' || !message?.trim()) {
-          // Gemini thinks it's fine → skip this line
-          console.log(`[SKIP] Gemini found no issue for: ${r.text}`)
-          continue
+        // Log the full roast data for debugging
+        console.log('[GEMINI ROAST DATA]', JSON.stringify(roasts, null, 2))
+
+        const diagnostics: vscode.Diagnostic[] = []
+
+        for (const roast of roasts) {
+          // Convert 0-based Gemini line to 1-based VS Code line, with bounds checking
+          const actualLine = Math.min(roast.line + 1, doc.lineCount - 1)
+          const line = doc.lineAt(actualLine)
+          const range = new vscode.Range(actualLine, 0, actualLine, line.text.length)
+
+          const diag = new vscode.Diagnostic(
+            range,
+            roast.roast,
+            severityMap[roast.severity] || vscode.DiagnosticSeverity.Warning
+          )
+
+          diagnostics.push(diag)
+          totalRoasts++
         }
 
-        console.log(`[GEMINI] Roasting: ${r.text} → ${message}`)
+        diagnosticCollection.set(uri, diagnostics)
       } catch (err) {
-        console.error('[CodeRoast] Gemini failed:', err)
-        vscode.window.showErrorMessage('⚠️ Gemini API failed or timed out. Try again later.')
-        return
+        console.error('[CodeRoast] Error processing file:', file.fsPath, err)
+        vscode.window.showErrorMessage(`Gemini roast failed for ${file.fsPath}`)
       }
-
-      const diagnostic = new vscode.Diagnostic(
-        range,
-        message,
-        vscode.DiagnosticSeverity.Warning
-      )
-
-      if (!fileMap.has(r.filePath)) {
-        fileMap.set(r.filePath, [])
-      }
-
-      fileMap.get(r.filePath)?.push(diagnostic)
     }
 
-    for (const [filePath, diagnostics] of fileMap.entries()) {
-      const uri = vscode.Uri.file(filePath)
-      diagnosticCollection.set(uri, diagnostics)
+    if (totalRoasts > 0) {
+      vscode.window.showInformationMessage(`🔥 Gemini roasted ${totalRoasts} line(s) across your codebase.`)
+    } else {
+      vscode.window.showInformationMessage('✨ Gemini found nothing to roast. You may be… competent.')
     }
-
-    vscode.window.showInformationMessage(`Roast complete. ${results.length} sins uncovered.`)
   })
 
   context.subscriptions.push(roastCommand)
 }
 
-function generateRoast(line: string): string {
-  if (line.includes('catch {')) return '🔥 Empty catch block? Just vibe through errors, huh?'
-  if (line.includes('==')) return '🔥 Loose equality? Why not just flip a coin?'
-  if (line.includes('any')) return '🔥 "any" type detected. Chaos reigns.'
-  if (line.match(/\b(data|thing|stuff|obj)\b/)) return '🔥 That variable name tells me nothing and everything. Mostly nothing.'
-  return '🔥 Suspicious code detected.'
-}
-
 export function deactivate() {
-  if (diagnosticCollection) {
-    diagnosticCollection.clear()
-    diagnosticCollection.dispose()
-  }
+  diagnosticCollection?.clear()
+  diagnosticCollection?.dispose()
 }
