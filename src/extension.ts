@@ -43,10 +43,10 @@ export function activate(context: vscode.ExtensionContext) {
         const diagnostics: vscode.Diagnostic[] = []
 
         for (const roast of roasts) {
-          // Convert 0-based Gemini line to 1-based VS Code line, with bounds checking
-          const actualLine = Math.min(roast.line + 1, doc.lineCount - 1)
+          const actualLine = Math.max(0, Math.min(roast.line - 1, doc.lineCount - 1)) // 1-based → 0-based
           const line = doc.lineAt(actualLine)
           const range = new vscode.Range(actualLine, 0, actualLine, line.text.length)
+
 
           const diag = new vscode.Diagnostic(
             range,
@@ -79,3 +79,4 @@ export function deactivate() {
   diagnosticCollection?.clear()
   diagnosticCollection?.dispose()
 }
+
