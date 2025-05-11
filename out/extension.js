@@ -49,15 +49,16 @@ function activate(context) {
     context.subscriptions.push(diagnosticCollection);
     const roastCommand = vscode.commands.registerCommand('code-roast.start', async () => {
         vscode.window.showInformationMessage('🔥 Roasting your sins (whole-file mode)...');
-        const files = await vscode.workspace.findFiles('**/*.{ts,js}', '**/{node_modules,dist,build,out}/**');
+        const files = await vscode.workspace.findFiles('**/*.{js,ts,tsx,jsx,py,java,rb,go,sh,html,css}', '**/{node_modules,dist,build,out,venv,target,.git}/**');
         let totalRoasts = 0;
         const allRoasts = [];
         for (const file of files) {
             const doc = await vscode.workspace.openTextDocument(file);
             const text = doc.getText();
             const uri = file;
+            const language = doc.languageId;
             try {
-                const roasts = await (0, geminiClient_1.getRoastsForFile)(text);
+                const roasts = await (0, geminiClient_1.getRoastsForFile)(text, language);
                 if (!roasts || roasts.length === 0)
                     continue;
                 console.log('[GEMINI ROAST DATA]', JSON.stringify(roasts, null, 2));

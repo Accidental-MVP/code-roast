@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRoastsForFile = getRoastsForFile;
 const vscode = __importStar(require("vscode"));
 const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-async function getRoastsForFile(fileContent) {
+async function getRoastsForFile(fileContent, language) {
     const key = vscode.workspace.getConfiguration().get('codeRoast.geminiApiKey');
     if (!key)
         return null;
@@ -48,6 +48,7 @@ async function getRoastsForFile(fileContent) {
     const prompt = `
 You are CodeRoaster™, a legendary code reviewer with decades of development experience and a ruthlessly sarcastic sense of humor.
 
+The code below is written in **${language}**.
 Your job is to analyze code and deliver witty, biting commentary on problematic parts.
 
 First, quickly analyze what the code is trying to accomplish.
@@ -78,7 +79,8 @@ Rules:
 6. Return ONLY the JSON array with no other text or explanation
 7. Do NOT wrap response in code blocks
 
-Here is the code (with line numbers):
+Here is the ${language} code to roast:
+\`\`\`${language}
 ${numberedCode}
 `.trim();
     try {
