@@ -91,7 +91,7 @@ const thing = "yolo"
 
 ## 🚀 How to Use
 
-1. Install from the [Marketplace](https://marketplace.visualstudio.com/items?itemName=YOUR_NAME.code-roast)
+1. Install from the [Marketplace](https://marketplace.visualstudio.com/items?itemName=accidental-mvp.code-roast)
 2. Press `Ctrl+Shift+P` → `Start Code Roast`
 3. Watch it roast your code line by line
 4. Check `.code-roast/database/roast-summary.md` for your final report
