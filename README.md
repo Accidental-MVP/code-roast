@@ -1,130 +1,64 @@
-# 🔥 CodeRoast — The AI Code Reviewer With a Grudge
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/banner-light.png">
+  <img src="assets/banner-light.png" alt="CodeRoast — an AI code reviewer with a grudge">
+</picture>
 
-> *"You don’t need a linter. You need therapy."*
+<p>
+  <a href="https://marketplace.visualstudio.com/items?itemName=accidental-mvp.code-roast"><img alt="VS Code Marketplace" src="https://img.shields.io/badge/VS_Code_Marketplace-Install-1a5490?style=flat-square&labelColor=14181b"></a>
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-14181b?style=flat-square">
+  <img alt="Gemini" src="https://img.shields.io/badge/Gemini-bring_your_own_key-14181b?style=flat-square">
+  <a href="https://uday-parmar.vercel.app/work/coderoast"><img alt="Write-up" src="https://img.shields.io/badge/write--up-uday--parmar.vercel.app-1a5490?style=flat-square&labelColor=14181b"></a>
+</p>
 
-**CodeRoast** is a VS Code extension that reads your code, silently judges your life choices,
-and then roasts each problematic line with AI-generated insults — powered by Gemini.
+Reads your code, silently judges your life choices, and roasts every bad line.
 
-It doesn’t ask *“Are you ready for feedback?”*
-It asks *“Are you emotionally stable enough to handle this?”*
-
----
-
-## ⚙️ What It Does
-
-* 🧠 Scans your entire codebase
-* 🔎 Sends each file to Gemini AI
-* 💬 Returns roast comments for:
-
-  * Logic flaws
-  * Naming crimes
-  * Empty `catch` blocks
-  * Bad style
-  * Missing error handling
-  * Things that would make your senior dev sigh audibly
-* 🩻 Highlights the roast directly in the file via VS Code diagnostics
-* 🧾 Generates a `roast-summary.md` in `.code-roast/database/` with:
-
-  * Severity counts
-  * Common bad habits
-  * Suggested improvements
-  * A final report so you can cry productively
+> It doesn't ask *"are you ready for feedback?"*
+> It asks *"are you emotionally stable enough to handle this?"*
 
 ---
 
-## 🔧 Extension Settings
+## The serious version
 
-To use CodeRoast with Gemini, you’ll need to provide your own Gemini API key.
+Linters catch syntax and miss judgment. Review tools that *do* catch judgment produce polite
+reports nobody opens. The analysis is rarely what fails — **the delivery is**.
 
-Go to **Settings > Extensions > CodeRoast** or open `settings.json` and add:
+So CodeRoast reports through the editor's own **Diagnostics API**, the same channel a real
+linter uses. Findings appear squiggled under the offending line, in the Problems panel, where
+you are already looking — not in a separate report you will close.
 
-```json
-"codeRoast.geminiApiKey": "YOUR_API_KEY_HERE"
-```
+The humour is the delivery mechanism. I act on considerably more of this feedback than I ever
+did on a clean report, which was the entire hypothesis.
 
-Optional settings coming soon:
+## What it looks at
 
-* `codeRoast.useGeminiForSummary`: `true | false` — lets Gemini write the roast summary
-* `codeRoast.languageFilter`: `["js", "py", "java"]` — restrict which files get roasted
-
-No key = no roast. Gemini demands tribute.
-
----
-
-## 💡 Example
+Logic flaws · naming crimes · empty `catch` blocks · missing error handling · style · things
+that would make your senior dev sigh audibly.
 
 ```ts
 if (data == null || data == undefined) {
-  console.log("oops")
-}
+```
+> *Congratulations on checking for null twice and undefined zero times. `==` already did this
+> for you. You wrote extra characters to achieve nothing.*
+
+## Output
+
+Inline diagnostics, plus a `roast-summary.md` written to `.code-roast/database/` with severity
+counts, recurring habits and suggested improvements — so the output is auditable afterwards
+rather than just momentary.
+
+## Setup
+
+Bring your own Gemini key. No code is routed through any server of mine.
+
+**Settings → Extensions → CodeRoast**, or in `settings.json`:
+
+```json
+{ "codeRoast.geminiApiKey": "YOUR_API_KEY_HERE" }
 ```
 
-> *“null == undefined? Did you learn JavaScript from a fortune cookie?”*
-
-```ts
-catch {}
-```
-
-> *“Ah yes, silent error handling. Nothing to see here. Especially the errors.”*
-
-```ts
-const thing = "yolo"
-```
-
-> *“Global constant named 'thing'. I weep for future maintainers.”*
+No key, no roast. Gemini demands tribute.
 
 ---
 
-## 🧙 Supported Languages
-
-* ✅ JavaScript / TypeScript (+ JSX/TSX)
-* ✅ Python
-* ✅ Java
-* ✅ Bash / Shell
-* ✅ HTML / CSS
-* ✅ Ruby
-* ✅ Go
-
-> More coming, depending on how much pain you want.
-
----
-
-## 🚀 How to Use
-
-1. Install from the [Marketplace](https://marketplace.visualstudio.com/items?itemName=accidental-mvp.code-roast)
-2. Press `Ctrl+Shift+P` → `Start Code Roast`
-3. Watch it roast your code line by line
-4. Check `.code-roast/database/roast-summary.md` for your final report
-5. Question your choices
-
----
-
-## 🔐 Privacy
-
-This extension does NOT upload your code.
-It sends individual files to **Gemini** via API **only when you trigger the roast**.
-You can also provide your own Gemini API key for complete control.
-
-No tracking.
-No data collection.
-Just roasting.
-
----
-
-## 🧷 Why?
-
-Because your code is probably bad.
-And deep down, you know it.
-
----
-
-## ✍️ Built By
-
-[accidental-mvp](https://github.com/accidental-mvp)
-The same brain responsible for [ShameLock](https://github.com/accidental-mvp/shamelock)
-
----
-
-> "You were a developer.
-> I roasted you like one."
-> — CodeRoast, probably
+<sub>Built by <a href="https://uday-parmar.vercel.app">Uday Parmar</a></sub>
